@@ -1,0 +1,74 @@
+<h2>Employees</h2>
+
+<input id="search" placeholder="Search">
+<button onclick="load()">Search</button>
+
+<ul id="list"></ul>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="app.js"></script>
+<script>
+function load() {
+  const q = document.getElementById("search").value;
+  axios.get(`${API_BASE}/employees/employees/list/?search=${q}`, authHeader())
+    .then(res => {
+      const ul = document.getElementById("list");
+      ul.innerHTML = "";
+      res.data.forEach(e => {
+        ul.innerHTML += `
+          <li>
+            ${JSON.stringify(e.data)}
+<!--            <button onclick="edit(${e.id}, '${JSON.stringify(e.data)}')">Edit</button>-->
+            <button onclick="del(${e.id})">Delete</button>
+          </li>
+        `;
+      });
+    });
+}
+
+function del(id) {
+  axios.delete(`${API_BASE}/employees/employees/${id}/`, authHeader())
+    .then(() => load());
+}
+
+load();
+
+
+</script>
+<script>
+    let editId = null;
+
+function edit(id, data) {
+  editId = id;
+  const parsed = JSON.parse(data);
+
+  let formHtml = "";
+  for (let key in parsed) {
+    formHtml += `
+      <label>${key}</label><br>
+      <input id="edit-${key}" value="${parsed[key]}"><br><br>
+    `;
+  }
+
+  formHtml += `<button onclick="update()">Update</button>`;
+  document.getElementById("list").innerHTML = formHtml;
+}
+
+function update() {
+  let inputs = document.querySelectorAll("[id^='edit-']");
+  let data = {};
+
+  inputs.forEach(i => {
+    data[i.id.replace("edit-", "")] = i.value;
+  });
+
+  axios.put(
+    `${API_BASE}/employees/employees/${editId}/update/`,
+    { data: data },
+    authHeader()
+  ).then(() => {
+    alert("Updated");
+    load();
+  });
+}
+</script>

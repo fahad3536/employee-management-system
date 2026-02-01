@@ -1,0 +1,41 @@
+<h2>Create Employee</h2>
+
+<input id="formId" placeholder="Form ID">
+<button onclick="loadForm()">Load Form</button>
+
+<form id="employeeForm"></form>
+<button onclick="submitEmployee()">Save Employee</button>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="app.js"></script>
+<script>
+let formSchema = null;
+
+function loadForm() {
+  const formId = document.getElementById("formId").value;
+  axios.get(`${API_BASE}/forms/forms/${formId}/`, authHeader())
+    .then(res => {
+      formSchema = res.data;
+      const form = document.getElementById("employeeForm");
+      form.innerHTML = "";
+
+      res.data.fields.forEach(f => {
+        form.innerHTML += `
+          <label>${f.label}</label><br>
+          <input name="${f.label}" type="${f.field_type}"><br><br>
+        `;
+      });
+    });
+}
+
+function submitEmployee() {
+  const inputs = document.querySelectorAll("#employeeForm input");
+  let data = {};
+  inputs.forEach(i => data[i.name] = i.value);
+
+  axios.post(`${API_BASE}/employees/employees/`, {
+    form_id: formSchema.id,
+    data: data
+  }, authHeader()).then(() => alert("Employee created"));
+}
+</script>
